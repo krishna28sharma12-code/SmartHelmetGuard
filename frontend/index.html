@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart Helmet Guard - AI Vehicle Compliance</title>
+  <meta name="description" content="AI-Based Helmet Detection, Start Authorization, and Safety Compliance Prototype">
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a8 8 0 0 0-8 8c0 3.5 2 6 5 7.5V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.5c3-1.5 5-4 5-7.5a8 8 0 0 0-8-8z"/>
+            <path d="M9 12h6"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Smart Helmet Guard</h1>
+          <p class="brand-subtitle">AI Start Authorization Prototype</p>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <a href="/dashboard.html" class="status-chip" style="text-decoration: none; color: var(--color-accent); border-color: rgba(56, 189, 248, 0.3);">
+          <span>📋 Portal</span>
+        </a>
+        <div id="hardware-status" class="status-chip chip-disconnected">
+          <span class="chip-dot"></span>
+          <span id="hardware-status-text">NodeMCU: NOT CONNECTED</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Live Monitor Display -->
+    <main class="monitor-container">
+      <!-- Camera Card -->
+      <div class="camera-card">
+        <div class="video-wrapper">
+          <video id="camera-stream" autoplay playsinline muted></video>
+          <canvas id="capture-canvas" style="display: none;"></canvas>
+
+          <!-- Visual HUD Overlays -->
+          <div class="hud-reticle">
+            <div class="hud-corner top-left"></div>
+            <div class="hud-corner top-right"></div>
+            <div class="hud-corner bottom-left"></div>
+            <div class="hud-corner bottom-right"></div>
+          </div>
+
+          <!-- Camera Inactive / Permission Message -->
+          <div id="camera-placeholder" class="camera-overlay">
+            <div class="overlay-content">
+              <svg class="overlay-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <h2 id="camera-prompt-title">Camera Inactive</h2>
+              <p id="camera-prompt-msg">Press "Start Monitoring" to enable helmet detection.</p>
+            </div>
+          </div>
+
+          <!-- Warning Countdown Overlay -->
+          <div id="warning-banner" class="warning-overlay" style="display: none;">
+            <div class="warning-pulse-icon">⚠️</div>
+            <div class="warning-text-group">
+              <span class="warning-label">NO HELMET DETECTED</span>
+              <span class="warning-timer" id="warning-countdown">120s</span>
+              <span class="warning-sub">PUT HELMET ON TO PREVENT VIOLATION</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- System State Bar -->
+        <div class="state-bar">
+          <div class="state-indicator" id="state-badge">
+            <span class="state-icon" id="state-icon">🔒</span>
+            <div class="state-text-wrap">
+              <span class="state-label">SYSTEM STATE</span>
+              <span class="state-value" id="state-text">START BLOCKED (0°)</span>
+            </div>
+          </div>
+          <div class="latency-indicator">
+            <span class="latency-label">INFERENCE</span>
+            <span class="latency-value" id="latency-display">-- ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Confidence Telemetry -->
+      <section class="telemetry-card">
+        <div class="card-header">
+          <h2 class="card-title">Detector Confidence</h2>
+          <span class="card-caption">Real Model Probabilities</span>
+        </div>
+
+        <div class="meters-list">
+          <!-- Helmet Meter -->
+          <div class="meter-group">
+            <div class="meter-label-row">
+              <span class="meter-name">
+                <span class="dot-indicator dot-helmet"></span> Helmet Detected
+              </span>
+              <span class="meter-pct" id="helmet-conf-val">0.0%</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-helmet" id="helmet-conf-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- No-Helmet Meter -->
+          <div class="meter-group">
+            <div class="meter-label-row">
+              <span class="meter-name">
+                <span class="dot-indicator dot-nohelmet"></span> No Helmet (Direct Class)
+              </span>
+              <span class="meter-pct" id="nohelmet-conf-val">0.0%</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-nohelmet" id="nohelmet-conf-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Steps & Counters -->
+        <div class="counters-grid">
+          <div class="counter-box">
+            <span class="counter-label">Pre-Start Helmet Readings</span>
+            <div class="counter-value-row">
+              <span class="counter-num" id="helmet-consecutive-count">0</span>
+              <span class="counter-target">/ 3 Required</span>
+            </div>
+          </div>
+          <div class="counter-box">
+            <span class="counter-label">No-Helmet Consecutive Alerts</span>
+            <div class="counter-value-row">
+              <span class="counter-num" id="nohelmet-consecutive-count">0</span>
+              <span class="counter-target">/ 5 To Trigger Warning</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Configuration & Controls Drawer -->
+      <section class="controls-card">
+        <div class="control-actions">
+          <button id="btn-toggle-monitor" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span id="btn-monitor-text">Start Monitoring</span>
+          </button>
+          
+          <button id="btn-flip-cam" class="btn btn-secondary" title="Flip Camera">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8v3"/>
+              <path d="M4 14l-3-3 3-3"/>
+              <path d="M4 14c0 4.4 3.6 8 8 8s8-3.6 8-8v-3"/>
+              <path d="M20 10l3 3-3 3"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Settings Accordion / Details -->
+        <details class="settings-details">
+          <summary class="settings-summary">
+            <span>Prototype Settings & Hardware Link</span>
+            <span class="settings-arrow">▾</span>
+          </summary>
+          
+          <div class="settings-body">
+            <div class="setting-item">
+              <label for="input-vehicle" class="setting-label">Vehicle Registration #</label>
+              <input type="text" id="input-vehicle" class="setting-input" value="DL-01-AB-1234">
+            </div>
+
+            <div class="setting-item">
+              <label for="select-route" class="setting-label">NodeMCU Route</label>
+              <select id="select-route" class="setting-select">
+                <option value="route1">Route 1: Direct Hotspot (http://&lt;IP&gt;/servo)</option>
+                <option value="route2">Route 2: Cloud Relay (/api/command)</option>
+              </select>
+            </div>
+
+            <div class="setting-item" id="nodemcu-ip-wrap">
+              <label for="input-nodemcu-ip" class="setting-label">NodeMCU Local IP</label>
+              <input type="text" id="input-nodemcu-ip" class="setting-input" value="192.168.43.100" placeholder="e.g. 192.168.43.100">
+            </div>
+
+            <div class="setting-item">
+              <label for="select-preset" class="setting-label">Exhibition Demo Preset</label>
+              <select id="select-preset" class="setting-select">
+                <option value="120">Standard Real Setting (120 seconds warning)</option>
+                <option value="15">Table Demo Preset (15 seconds warning)</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <button id="btn-test-servo" class="btn btn-outline">
+                Simulate Manual Servo Sweep (0° ⇄ 90°)
+              </button>
+            </div>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <!-- Footer Notice -->
+    <footer class="app-footer">
+      <p class="safety-notice">
+        <strong>Safety Prototype Boundary:</strong> Servo simulates starter relay only. No real engine or vehicle connection. Demonstration records only.
+      </p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

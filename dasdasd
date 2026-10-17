@@ -1,0 +1,40 @@
+firmware/nodemcu_servo.ino:4: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+firmware/nodemcu_servo.ino:9: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+firmware/nodemcu_servo.ino:13: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+firmware/nodemcu_servo.ino:27: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+firmware/nodemcu_servo.ino:32: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+firmware/nodemcu_servo.ino:86: trailing whitespace.
+[32m+[m[41m  [m
+firmware/nodemcu_servo.ino:204: trailing whitespace.
+[32m+[m[41m  [m
+frontend/app.js:4: trailing whitespace.
+[32m+[m[32m *[m[41m [m
+frontend/dashboard.html:283: trailing whitespace.
+[32m+[m[41m      [m
+frontend/dashboard.html:397: trailing whitespace.
+[32m+[m[32m                  <img src="${item.image_base64.startsWith('data:') ? item.image_base64 : 'data:image/jpeg;base64,' + item.image_base64}"[m[41m [m
+frontend/dashboard.html:398: trailing whitespace.
+[32m+[m[32m                       alt="Evidence Snapshot"[m[41m [m
+frontend/index.html:8: trailing whitespace.
+[32m+[m[41m  [m
+frontend/index.html:13: trailing whitespace.
+[32m+[m[41m  [m
+frontend/index.html:162: trailing whitespace.
+[32m+[m[41m          [m
+frontend/index.html:179: trailing whitespace.
+[32m+[m[41m          [m
+frontend/style.css:7: trailing whitespace.
+[32m+[m[41m  [m
+frontend/style.css:11: trailing whitespace.
+[32m+[m[41m  [m
+frontend/style.css:19: trailing whitespace.
+[32m+[m[41m  [m
+frontend/style.css:24: trailing whitespace.
+[32m+[m[41m  [m
+frontend/style.css:38: trailing whitespace.
+[32m+[m[32m  background-image:[m[41m [m

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Environment Variables & Secrets
+.env
+*.env
+secrets.json
+
+# Firmware Wi-Fi credentials / local configs
+firmware/secrets.h
+
+# Temporary test images & OS files
+.DS_Store
+Thumb.db
+Thumbs.db
+
+# SQLite database (contains demo violation records - do not commit)
+*.db
+backend/*.db
+
+
+# Local environment examples are safe only if they contain placeholders
+!.env.example
+
+# Python test and tool caches
+.pytest_cache/
+.mypy_cache/
+
+# Local editor files
+.vscode/

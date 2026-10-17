@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authority Portal - Smart Helmet Guard</title>
+  <meta name="description" content="Password-Protected Review Dashboard for Helmet Compliance">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .dashboard-container {
+      width: 100%;
+      max-width: 960px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .dash-title-group h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .dash-title-group p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      border-color: var(--color-accent);
+    }
+
+    /* Auth Gate Modal */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.96);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      text-align: center;
+    }
+
+    .auth-icon-wrap {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto;
+      border-radius: var(--radius-md);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+
+    .auth-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .auth-card p {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    .auth-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: #fff;
+      font-family: var(--font-main);
+      font-size: 0.95rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.1em;
+    }
+
+    .auth-input:focus {
+      border-color: var(--color-accent);
+    }
+
+    .auth-error {
+      color: #ef4444;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: none;
+    }
+
+    /* Records Grid */
+    .records-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .record-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px;
+      box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .record-plate {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .record-status-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-reviewed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-dismissed { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .record-image-wrap {
+      width: 100%;
+      height: 170px;
+      background: #000;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .record-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .img-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+    }
+
+    .record-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .detail-val {
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+
+    .record-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-review { background: #059669; color: #fff; }
+    .btn-dismiss { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .btn-action:hover { opacity: 0.85; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <!-- Password Protection Gate -->
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-icon-wrap">🔒</div>
+      <div>
+        <h2>Authority Login</h2>
+        <p>Restricted Review Portal (Exhibition Demo)</p>
+      </div>
+
+      <input type="password" id="auth-password-input" class="auth-input" placeholder="Enter Password" autofocus>
+      <div id="auth-error-msg" class="auth-error">Incorrect password. Access denied.</div>
+
+      <button id="btn-login" class="btn btn-primary" style="width: 100%;">
+        Unlock Portal
+      </button>
+      
+      <p style="font-size: 0.72rem; color: var(--text-dim);">Default prototype password: <code>admin123</code></p>
+    </div>
+  </div>
+
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <header class="dash-header">
+      <div class="dash-title-group">
+        <h1>Authority Review Portal</h1>
+        <p>Demonstration Compliance Log & Evidence Review</p>
+      </div>
+      <div class="nav-links">
+        <a href="/" class="nav-btn">← Back to Camera Monitor</a>
+        <button id="btn-refresh" class="nav-btn">↻ Refresh</button>
+        <button id="btn-logout" class="nav-btn" style="color: #f87171;">Logout</button>
+      </div>
+    </header>
+
+    <div id="records-container" class="records-grid">
+      <!-- Records injected via JS -->
+    </div>
+  </div>
+
+  <script>
+    let currentAuthToken = sessionStorage.getItem('authority_token') || '';
+
+    // Auth gate check
+    function checkAuth() {
+      if (currentAuthToken) {
+        document.getElementById('auth-modal').style.display = 'none';
+        loadViolations();
+      } else {
+        document.getElementById('auth-modal').style.display = 'flex';
+      }
+    }
+
+    async function handleLogin() {
+      const pwd = document.getElementById('auth-password-input').value.trim();
+      const errBox = document.getElementById('auth-error-msg');
+
+      if (!pwd) return;
+
+      try {
+        const resp = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+
+        if (resp.ok) {
+          currentAuthToken = pwd;
+          sessionStorage.setItem('authority_token', pwd);
+          document.getElementById('auth-modal').style.display = 'none';
+          errBox.style.display = 'none';
+          loadViolations();
+        } else {
+          errBox.style.display = 'block';
+        }
+      } catch (e) {
+        errBox.textContent = 'Server unreachable';
+        errBox.style.display = 'block';
+      }
+    }
+
+    document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('auth-password-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      sessionStorage.removeItem('authority_token');
+      currentAuthToken = '';
+      checkAuth();
+    });
+
+    async function loadViolations() {
+      const container = document.getElementById('records-container');
+      try {
+        const resp = await fetch('/api/violations', {
+          headers: {
+            'X-Dashboard-Password': currentAuthToken
+          }
+        });
+
+        if (resp.status === 401) {
+          sessionStorage.removeItem('authority_token');
+          currentAuthToken = '';
+          checkAuth();
+          return;
+        }
+
+        const data = await resp.json();
+
+        if (!data || data.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <p>No violation records found in database.</p>
+              <p style="font-size: 0.8rem; margin-top: 6px;">Trigger a warning countdown in the live camera monitor to create demonstration records.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = data.map(item => {
+          return `
+            <div class="record-card">
+              <div class="record-header">
+                <span class="record-plate">${item.vehicle_number}</span>
+                <span class="record-status-pill status-${(item.status || 'pending').toLowerCase()}">${item.status}</span>
+              </div>
+
+              <div class="record-image-wrap">
+                ${(item.image_base64 && item.image_base64.length > 50) ? `
+                  <img src="${item.image_base64.startsWith('data:') ? item.image_base64 : 'data:image/jpeg;base64,' + item.image_base64}" 
+                       alt="Evidence Snapshot" 
+                       onerror="this.style.display='none'; this.parentElement.querySelector('.img-fallback').style.display='flex';">
+                  <div class="img-fallback">
+                    <span>⚠️</span>
+                    <span>Image Load Error</span>
+                  </div>
+                ` : `
+                  <div class="img-fallback" style="display: flex;">
+                    <span style="font-size: 1.8rem;">📷</span>
+                    <span>No Frame Captured</span>
+                  </div>
+                `}
+              </div>
+
+              <div class="record-details">
+                <div class="detail-row">
+                  <span>Timestamp</span>
+                  <span class="detail-val">${item.timestamp}</span>
+                </div>
+                <div class="detail-row">
+                  <span>Location</span>
+                  <span class="detail-val">${item.location}</span>
+                </div>
+                ${item.reviewer_notes ? `
+                <div class="detail-row">
+                  <span>Note</span>
+                  <span class="detail-val" style="color: #38bdf8;">${item.reviewer_notes}</span>
+                </div>` : ''}
+              </div>
+
+              ${item.status === 'PENDING' ? `
+              <div class="record-actions">
+                <button class="btn-action btn-review" onclick="updateRecord('${item.id}', 'REVIEWED')">Mark Reviewed</button>
+                <button class="btn-action btn-dismiss" onclick="updateRecord('${item.id}', 'DISMISSED')">Dismiss</button>
+              </div>` : ''}
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        container.innerHTML = `<p style="color: #ef4444;">Failed to fetch records: ${err.message}</p>`;
+      }
+    }
+
+    async function updateRecord(id, newStatus) {
+      const notes = newStatus === 'REVIEWED' ? 'Verified by Authority Reviewer' : 'Dismissed - Inconclusive';
+      try {
+        const resp = await fetch(`/api/violations/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Dashboard-Password': currentAuthToken
+          },
+          body: JSON.stringify({ status: newStatus, notes: notes })
+        });
+        if (resp.ok) {
+          loadViolations();
+        }
+      } catch (err) {
+        alert('Update error: ' + err.message);
+      }
+    }
+
+    document.getElementById('btn-refresh').addEventListener('click', loadViolations);
+    checkAuth();
+  </script>
+</body>
+</html>
